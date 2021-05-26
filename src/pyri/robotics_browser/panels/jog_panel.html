@@ -1,0 +1,121 @@
+<div id="jog_panel_component" @mousedown="mousedown" @mouseup="mouseup" @mouseleave="mouseleave" class="overflow-auto h-100">
+<div>
+    <b-card border-variant="dark" style="display:inline-block; padding: 0.25rem" no-body>Robot: <b-form-select v-model="current_robot" :options="current_robot_options" style="width: 250px" @change="current_robot_changed"></b-form-select>
+    Status: <span :class="('device_status_text_' + current_robot_status)"></span></b-card>
+    <b-card border-variant="dark" style="display:inline-block; padding: 0.25rem;" no-body>Mode: {{ current_robot_mode }} <b-button @click="set_jog_mode">Enable Jog</b-button> <b-button @click="set_halt_mode">Halt</b-button></b-card>
+    <b-card border-variant="dark" style="display:inline-block; padding: 0.25rem;" no-body>Jog Speed:
+        <b-form-radio-group id="jog-speed-radio-group" v-model="selected_jog_speed" name="jog-speed-radio" buttons button-variant="dark">
+            <b-form-radio value="10">10%</b-form-radio>
+            <b-form-radio value="25">25%</b-form-radio>
+            <b-form-radio value="50">50%</b-form-radio>
+            <b-form-radio value="100">100%</b-form-radio>
+        </b-form-radio-group>
+    </b-card>
+    <b-card border-variant="dark" style="display:inline-block; padding: 0.25rem;" no-body>Joystick: 
+        <b-form-radio-group id="joystick-enable-radio-group" v-model="selected_joystick_enable" @change="selected_joystick_enable_changed" name="joystick-enable-radio" buttons button-variant="dark">
+            <b-form-radio value="disable">Disable</b-form-radio>
+            <b-form-radio value="group1">Joint Group 1</b-form-radio>
+            <b-form-radio value="group2">Joint Group 2</b-form-radio>
+            <b-form-radio value="cartesian">Cartesian</b-form-radio>
+        </b-form-radio-group>
+    </b-card>
+</div>
+
+<div>
+    <b-card title="Joint Jog" border-variant="dark" style="max-width: 26rem; display:inline-block; vertical-align: top;">
+        <b-container>
+            <b-row class="no-gutters">
+              <b-col>Min (deg)</b-col><b-col></b-col><b-col>Current (deg)</b-col><b-col></b-col><b-col>Max (deg)</b-col><b-col>Standby (deg)</b-col>
+              <div class="w-100"></div>
+              <template v-for="(j, index) in joint_state" :key="j.joint_number">
+                <b-col>{{ j.lower }}</b-col>
+                <b-col><b-button @mousedown="jog_decrement_mousedown(index)">J{{ index+1 }}-</b-button></b-col>
+                <b-col><span :id="'joint_pos_' + index"></span></b-col>
+                <b-col><b-button @mousedown="jog_increment_mousedown(index)">J{{ index+1 }}+</b-button></b-col>
+                <b-col>{{ j.upper }}</b-col>
+                <b-col>{{ joint_standby_disp(index) }}</b-col>
+                <div class="w-100"></div>
+              </template>              
+            </b-row>
+          </b-container><br>
+          <div class="d-flex justify-content-around"><b-button @click="joint_jog_standby_visible = true">Edit Standby</b-button>  <b-button id="j_angles_submit_btn" variant="danger" @click="move_to_standby"><i class="fas fa-exclamation"></i> Move To Standby</b-button></div>
+
+    </b-card>
+    <b-modal ref="joint_jog_standby_edit" id="joint_jog_standby_edit" title="Joint Angle Standby Editor" hide-header-close v-model="joint_jog_standby_visible" @shown="joint_jog_standby_show" @ok="joint_jog_standby_ok">
+
+        <b-row class="no-gutters">
+            <b-col>Min<br>(deg)</b-col><b-col>Current<br>(deg)</b-col><b-col>Max<br>(deg)</b-col><b-col>Standby Input<br>(deg)</b-col>
+            <div class="w-100"></div>
+            <template v-for="(j, index) in joint_state" :key="j.joint_number">
+              <b-col>{{ j.lower }}</b-col>              
+              <b-col><span :id="'standby_joint_pos_' + index"></span></b-col>              
+              <b-col>{{ j.upper }}</b-col>
+              <b-col><input type="text" :id="'standby_j' + index + '_angle_in'" :placeholder="j.current" value="0" type="number"></b-col>
+              <div class="w-100"></div>
+            </template>
+          </b-row>
+        <b-button @click="set_standby_current">Set Standby to Current</b-button> <b-button @click="save_standby">Save Standby Joint Pose</b-button><br>
+        <b-form-select v-model="load_joint_pose_selected" :options="load_joint_pose_options" style="width: 250px"></b-form-select><br>
+        <b-button @click="load_joint_pose">Load Joint Pose</b-button>
+        <b-button @click="delete_joint_pose">Delete Joint Pose</b-button>
+        <b-button @click="refresh_joint_pose_options">Refresh</b-button>
+    </b-modal>
+
+    <b-card title="Task Space Jog" border-variant="dark" style="max-width: 20rem; display:inline-block; vertical-align: top;">
+      <table id="table_TaskSpaceControl" border="0" >
+        <Tr>
+            <TH align="center" COLSPAN="2"> <H4>Position</H4> </TH>
+        </Tr>
+        <tr>
+            <td> <b-button id="X_neg_btn" type="button" @mousedown="jog_cart_decrement_mousedown(0)" style="width: 100%">X-</b-button> </td>
+            <td> <b-button id="X_pos_btn" type="button" @mousedown="jog_cart_increment_mousedown(0)" style="width: 100%">X+</b-button> </td>
+        </tr>
+        <tr>
+            <td > <b-button id="Y_neg_btn" type="button" @mousedown="jog_cart_decrement_mousedown(1)" style="width: 100%">Y-</b-button> </td>
+            <td > <b-button id="Y_pos_btn" type="button" @mousedown="jog_cart_increment_mousedown(1)" style="width: 100%">Y+</b-button> </td>
+        </tr>         
+        <tr>
+            <td > <b-button id="Z_neg_btn" type="button" @mousedown="jog_cart_decrement_mousedown(2)" style="width: 100%">Z-</b-button> </td>
+            <td > <b-button id="Z_pos_btn" type="button" @mousedown="jog_cart_increment_mousedown(2)" style="width: 100%">Z+</b-button> </td>
+        </tr>
+        <Tr>
+            <TH align="center" COLSPAN="2"> <H4><br>Orientation</H4> </TH>
+        </Tr>      
+        <tr>
+            <td > <b-button id="theta_X_neg_btn" type="button" @mousedown="jog_cart_decrement_mousedown(3)" style="width: 100%">&theta;<sub>X</sub>-</b-button> </td>
+            <td > <b-button id="theta_X_pos_btn" type="button" @mousedown="jog_cart_increment_mousedown(3)" style="width: 100%">&theta;<sub>X</sub>+</b-button> </td>
+        </tr>  
+        <tr>
+            <td > <b-button id="theta_Y_neg_btn" type="button" @mousedown="jog_cart_decrement_mousedown(4)" style="width: 100%">&theta;<sub>Y</sub>-</b-button> </td>
+            <td > <b-button id="theta_Y_pos_btn" type="button" @mousedown="jog_cart_increment_mousedown(4)" style="width: 100%">&theta;<sub>Y</sub>+</b-button> </td>
+        </tr>
+        <tr>
+            <td >  <b-button id="theta_Z_neg_btn" type="button" @mousedown="jog_cart_decrement_mousedown(5)" style="width: 100%">&theta;<sub>Z</sub>-</b-button> </td>
+            <td > <b-button id="theta_Z_pos_btn" type="button" @mousedown="jog_cart_increment_mousedown(5)" style="width: 100%">&theta;<sub>Z</sub>+</b-button> </td>
+        </tr>
+        <tr>
+            <td COLSPAN="2">
+            <table style="text-align: center; display: block; border: 1px solid; ">
+                <Tr> <TH > <H4>Current Pose wrt Base</H4> </TH> </Tr>
+                <tr> <td align="left"> ZYX Angles (deg):  </td> </tr>
+                <tr> <td> {{ cur_ZYX_angles }} </td></tr>
+                <tr> <td align="left"> Position (m): </td> </tr>
+                <tr> <td> {{ cur_position }} </div>  </td></tr>    
+            </table>
+            </td>
+        </tr>  
+    </table>
+    </b-card>
+
+    <b-card title="Tool" border-variant="dark" style="max-width: 30rem; display:inline-block; vertical-align: top;">
+        <div>Tool: <b-form-select v-model="current_tool" :options="current_tool_options" style="width: 250px"></b-form-select>
+            Status: <span :class="('device_status_text_' + current_tool_status)"></span>
+            
+        </div>
+        
+        <b-button @click="tool_open()">Open Tool</b-button><b-button @click="tool_close()">Close Tool</b-button>
+    </b-card>
+
+    </div>
+
+</div>
