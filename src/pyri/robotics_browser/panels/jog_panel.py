@@ -7,6 +7,8 @@ import traceback
 from RobotRaconteur.Client import *
 
 from pyri.webui_browser import util
+from pyri.webui_browser.util import to_js2
+from pyodide import create_proxy, to_js
 
 import numpy as np
 
@@ -49,14 +51,14 @@ class PyriJogPanel(PyriWebUIBrowserPanelBase):
    
     def watch_current_robot_options(self, new_value, *args):
         if new_value.length > 0:
-            if self.vue["$data"].current_robot is None:
-                self.vue["$data"].current_robot = new_value[0].value
+            if getattr(self.vue,"$data").current_robot is None:
+                getattr(self.vue,"$data").current_robot = new_value[0].value
         else:
-            self.vue["$data"].current_robot = None
+            getattr(self.vue,"$data").current_robot = None
 
     def joint_state(self):
         
-        current_robot = self.vue["$data"].current_robot
+        current_robot = getattr(self.vue,"$data").current_robot
         if current_robot is None:
             return [], []
 
@@ -107,7 +109,7 @@ class PyriJogPanel(PyriWebUIBrowserPanelBase):
         return ret, ret2
 
     def current_robot_mode(self):
-        current_robot = self.vue["$data"].current_robot
+        current_robot = getattr(self.vue,"$data").current_robot
         if current_robot is None:
             return "Invalid"
 
@@ -145,42 +147,42 @@ class PyriJogPanel(PyriWebUIBrowserPanelBase):
 
     def current_robot_connected(self, vue, *args):
         try:
-            current_robot = vue["$data"].current_robot
+            current_robot = getattr(vue,"$data").current_robot
             return self.core.devices_states.devices_states[current_robot].connected
         except:
             return False
 
     def current_robot_error(self, vue, *args):
         try:
-            current_robot = vue["$data"].current_robot
+            current_robot = getattr(vue,"$data").current_robot
             return self.core.devices_states.devices_states[current_robot].error
         except:
             return True
 
     def current_robot_ready(self, vue, *args):
         try:
-            current_robot = vue["$data"].current_robot
+            current_robot = getattr(vue,"$data").current_robot
             return self.core.devices_states.devices_states[current_robot].ready
         except:
             return False
 
     def current_tool_connected(self, vue, *args):
         try:
-            current_tool = vue["$data"].current_tool
+            current_tool = getattr(vue,"$data").current_tool
             return self.core.devices_states.devices_states[current_tool].connected
         except:
             return False
 
     def current_tool_error(self, vue, *args):
         try:
-            current_tool = vue["$data"].current_tool
+            current_tool = getattr(vue,"$data").current_tool
             return self.core.devices_states.devices_states[current_tool].error
         except:
             return True
 
     def current_tool_ready(self, vue, *args):
         try:
-            current_tool = vue["$data"].current_tool
+            current_tool = getattr(vue,"$data").current_tool
             return self.core.devices_states.devices_states[current_tool].ready
         except:
             return False
@@ -192,7 +194,7 @@ class PyriJogPanel(PyriWebUIBrowserPanelBase):
             self.device_manager.connect_device("robotics_jog")            
             self.jog_connected = True
             
-        current_robot = self.vue["$data"].current_robot
+        current_robot = getattr(self.vue,"$data").current_robot
         if current_robot is None:
             return None, None
         try:
@@ -214,7 +216,7 @@ class PyriJogPanel(PyriWebUIBrowserPanelBase):
             while (self.mousedown): 
                 # Call Jog Joint Space Service funtion to handle this jogging
                 # await plugin_jogJointSpace.async_jog_joints2(q_i, sign, None)
-                speed_perc = float(self.vue["$data"].selected_jog_speed)
+                speed_perc = float(getattr(self.vue,"$data").selected_jog_speed)
                 await jog.async_jog_joints(q_i, sign, speed_perc, None)
                 await RRN.AsyncSleep(0.01,None)
 
@@ -318,7 +320,7 @@ class PyriJogPanel(PyriWebUIBrowserPanelBase):
                 # await plugin_jogCartesianSpace.async_jog_cartesian(P_axis, R_axis, None)
                 spatial_velocity_dtype = RRN.GetNamedArrayDType("com.robotraconteur.geometry.SpatialVelocity",jog)
                 vel = RRN.ArrayToNamedArray(np.concatenate((R_axis,P_axis)),spatial_velocity_dtype)
-                speed_perc = float(self.vue["$data"].selected_jog_speed)
+                speed_perc = float(getattr(self.vue,"$data").selected_jog_speed)
                 await jog.async_jog_cartesian(vel, speed_perc, "robot", None)
                 await RRN.AsyncSleep(0.01,None)
 
@@ -327,7 +329,7 @@ class PyriJogPanel(PyriWebUIBrowserPanelBase):
             traceback.print_exc()
         
     def cur_ZYX_angles(self):
-        current_robot = self.vue["$data"].current_robot
+        current_robot = getattr(self.vue,"$data").current_robot
         if current_robot is None:
             return ""
 
@@ -350,7 +352,7 @@ class PyriJogPanel(PyriWebUIBrowserPanelBase):
 
     def cur_position(self):
 
-        current_robot = self.vue["$data"].current_robot
+        current_robot = getattr(self.vue,"$data").current_robot
         if current_robot is None:
             return ""
 
@@ -373,14 +375,14 @@ class PyriJogPanel(PyriWebUIBrowserPanelBase):
     async def do_move_to_standby(self,joint_angles):
         try:
             jog = await self.get_jog()
-            speed_perc = float(self.vue["$data"].selected_jog_speed)
+            speed_perc = float(getattr(self.vue,"$data").selected_jog_speed)
             await jog.async_jog_joints_to_angles(joint_angles,speed_perc,None)
         except:
             traceback.print_exc()
 
     def get_target_joint_angles(self):
         try:
-            current_robot = self.vue["$data"].current_robot
+            current_robot = getattr(self.vue,"$data").current_robot
             joint_info = self.core.device_infos[current_robot]["extended_info"]["com.robotraconteur.robotics.robot.RobotInfo"].data.joint_info
         except:
             traceback.print_exc()
@@ -390,7 +392,7 @@ class PyriJogPanel(PyriWebUIBrowserPanelBase):
         n_joints = len(joint_info)
         target_angles = [0.0]*n_joints
         try:
-            target_angles1 = self.vue["$data"].joint_standby
+            target_angles1 = getattr(self.vue,"$data").joint_standby
             for i in range(len(target_angles1)):
                 target_angles[i] = target_angles1[i]
 
@@ -406,7 +408,7 @@ class PyriJogPanel(PyriWebUIBrowserPanelBase):
         try:
             for i in range(len(target_angles)):
                 js.jQuery.find(f"#standby_j{i}_angle_in")[0].value = f"{target_angles[i]:.4f}"
-            # self.vue["$data"].joint_standby = js.python_to_js(list(target_angles))
+            # getattr(self.vue,"$data").joint_standby = to_js2(list(target_angles))
         except:
             traceback.print_exc()
             js.alert("Invalid joint angle entries")
@@ -415,14 +417,14 @@ class PyriJogPanel(PyriWebUIBrowserPanelBase):
 
     def joint_jog_standby_show(self, *args):
         try:
-            standby = self.vue["$data"].joint_standby
+            standby = getattr(self.vue,"$data").joint_standby
             for i in range(len(standby)):
                 js.jQuery.find(f"#standby_j{i}_angle_in")[0].value = f"{standby[i]:.4f}"            
         except:
             traceback.print_exc()
 
     def current_edit_standby(self):
-        joint_state = self.vue["$data"].joint_state
+        joint_state = getattr(self.vue,"$data").joint_state
         current_standby = [0.0]*len(joint_state)
         for i in range(len(joint_state)):
             current_standby[i] = float(js.jQuery.find(f"#standby_j{i}_angle_in")[0].value)
@@ -431,7 +433,7 @@ class PyriJogPanel(PyriWebUIBrowserPanelBase):
     def joint_jog_standby_ok(self, *args):
         try:
             current_standby = self.current_edit_standby()
-            self.vue["$data"].joint_standby = js.python_to_js(list(current_standby))
+            getattr(self.vue,"$data").joint_standby = to_js2(list(current_standby))
         except:
             traceback.print_exc()
 
@@ -444,7 +446,7 @@ class PyriJogPanel(PyriWebUIBrowserPanelBase):
 
     async def do_load_joint_pose(self):
         try:
-            selected_pose = self.vue["$data"].load_joint_pose_selected
+            selected_pose = getattr(self.vue,"$data").load_joint_pose_selected
             var_storage = self.device_manager.get_device_subscription("variable_storage").GetDefaultClient()
             joint_pose = await var_storage.async_getf_variable_value("globals",selected_pose,None)
             self.set_standby_joint_angles(list(joint_pose.data))
@@ -457,7 +459,7 @@ class PyriJogPanel(PyriWebUIBrowserPanelBase):
         self.core.create_task(self.do_load_joint_pose())
 
     def set_standby_current(self,*args):
-        current_robot = self.vue["$data"].current_robot
+        current_robot = getattr(self.vue,"$data").current_robot
         joint_angles = None
         e_state = self.core.devices_states.devices_states[current_robot].state
         if e_state is not None:
@@ -473,7 +475,7 @@ class PyriJogPanel(PyriWebUIBrowserPanelBase):
         try:
             var_storage = self.device_manager.get_device_subscription("variable_storage").GetDefaultClient()
             joint_pose_names = await var_storage.async_filter_variables("globals",".*",["joint_pose"],None)
-            self.vue["$data"].load_joint_pose_options = js.python_to_js(joint_pose_names)
+            getattr(self.vue,"$data").load_joint_pose_options = to_js2(joint_pose_names)
         except:
             traceback.print_exc()
             js.alert(f"Refresh joint pose list failed:\n\n{traceback.format_exc()}")
@@ -510,7 +512,7 @@ class PyriJogPanel(PyriWebUIBrowserPanelBase):
 
     async def do_delete_joint_pose(self):
         try:
-            selected_pose = self.vue["$data"].load_joint_pose_selected
+            selected_pose = getattr(self.vue,"$data").load_joint_pose_selected
             var_storage = self.device_manager.get_device_subscription("variable_storage").GetDefaultClient()
             await var_storage.async_delete_variable("globals",selected_pose,None)
             
@@ -523,10 +525,10 @@ class PyriJogPanel(PyriWebUIBrowserPanelBase):
 
     def watch_current_tool_options(self, new_value, *args):
         if new_value.length > 0:
-            if self.vue["$data"].current_tool is None:
-                self.vue["$data"].current_tool = new_value[0].value
+            if getattr(self.vue,"$data").current_tool is None:
+                getattr(self.vue,"$data").current_tool = new_value[0].value
         else:
-            self.vue["$data"].current_tool = None
+            getattr(self.vue,"$data").current_tool = None
 
     async def get_tool(self):
         
@@ -535,7 +537,7 @@ class PyriJogPanel(PyriWebUIBrowserPanelBase):
             self.device_manager.connect_device("robotics_jog")            
             self.jog_connected = True
             
-        current_tool = self.vue["$data"].current_tool
+        current_tool = getattr(self.vue,"$data").current_tool
         if current_tool is None:
             return None
         try:
@@ -583,10 +585,10 @@ class PyriJogPanel(PyriWebUIBrowserPanelBase):
                 assert False, "Invalid joint jog group"
             
             jog = await self.get_jog()
-            while self.vue["$data"].selected_joystick_enable == e: 
+            while getattr(self.vue,"$data").selected_joystick_enable == e: 
                 # Call Jog Joint Space Service funtion to handle this jogging
                 # await plugin_jogJointSpace.async_jog_joints2(q_i, sign, None)
-                speed_perc = float(self.vue["$data"].selected_jog_speed)
+                speed_perc = float(getattr(self.vue,"$data").selected_jog_speed)
                 if e != "cartesian":
                     await jog.async_enable_jog_joints_joystick(group, speed_perc, None)
                 else:
@@ -595,19 +597,19 @@ class PyriJogPanel(PyriWebUIBrowserPanelBase):
 
             #await plugin_jogJointSpace.async_stop_joints(None)
         except:
-            self.vue["$data"].selected_joystick_enable = "disable"
+            getattr(self.vue,"$data").selected_joystick_enable = "disable"
             traceback.print_exc()
 
     def selected_joystick_enable_changed(self,e):
         self.core.loop.create_task(self.async_selected_joystick_enable_changed(e))
 
     def current_robot_changed(self,e):
-        self.vue["$data"].selected_joystick_enable = "disable"
-        self.vue["$data"].joint_standby = []
+        getattr(self.vue,"$data").selected_joystick_enable = "disable"
+        getattr(self.vue,"$data").joint_standby = []
 
     def joint_standby_disp(self, j):        
         try:
-            p = self.vue["$data"].joint_standby[j]            
+            p = getattr(self.vue,"$data").joint_standby[j]            
             return f"{p:.2f}"
         except:
             return ""
@@ -628,21 +630,21 @@ class PyriJogPanel(PyriWebUIBrowserPanelBase):
                 new_robots = util.get_devices_with_type(self.core,"com.robotraconteur.robotics.robot.Robot")
                 new_tools = util.get_devices_with_type(self.core,"com.robotraconteur.robotics.tool.Tool")
                 if set(new_robots) != last_robots:
-                    self.vue["$data"].current_robot_options = js.python_to_js(util.device_names_to_dropdown_options(new_robots))                    
+                    getattr(self.vue,"$data").current_robot_options = to_js2(util.device_names_to_dropdown_options(new_robots))                    
                     last_robots = set(new_robots)
 
                 if set(new_tools) != last_tools:
-                    self.vue["$data"].current_tool_options = js.python_to_js(util.device_names_to_dropdown_options(new_tools))
+                    getattr(self.vue,"$data").current_tool_options = to_js2(util.device_names_to_dropdown_options(new_tools))
                     last_tools = set(new_tools)
                 
                 try:
-                    self.vue["$data"].current_robot_status = util.device_status_name(devices_states,self.vue["$data"].current_robot)
-                    self.vue["$data"].current_robot_mode = self.current_robot_mode()
+                    getattr(self.vue,"$data").current_robot_status = util.device_status_name(devices_states,getattr(self.vue,"$data").current_robot)
+                    getattr(self.vue,"$data").current_robot_mode = self.current_robot_mode()
                 except:
                     traceback.print_exc()
 
                 try:
-                    self.vue["$data"].current_tool_status = util.device_status_name(devices_states,self.vue["$data"].current_tool)
+                    getattr(self.vue,"$data").current_tool_status = util.device_status_name(devices_states,getattr(self.vue,"$data").current_tool)
                 except:
                     traceback.print_exc()
 
@@ -650,7 +652,7 @@ class PyriJogPanel(PyriWebUIBrowserPanelBase):
                 try:
                     joint_state, joint_pos = self.joint_state()
                     if last_joint_state != joint_state:
-                        self.vue["$data"].joint_state = js.python_to_js(joint_state)
+                        getattr(self.vue,"$data").joint_state = to_js2(joint_state)
                         last_joint_state = joint_state
                         joint_pos_els = []
                     
@@ -662,7 +664,7 @@ class PyriJogPanel(PyriWebUIBrowserPanelBase):
                                 break
                             joint_pos_els.append(jpos_el)
 
-                    if self.vue["$data"].joint_jog_standby_visible:
+                    if getattr(self.vue,"$data").joint_jog_standby_visible:
 
                         if len(joint_pos_els2) != len(joint_pos):
                             for i in range(len(joint_pos)):
@@ -685,8 +687,8 @@ class PyriJogPanel(PyriWebUIBrowserPanelBase):
                     traceback.print_exc()
 
                 try:
-                    self.vue["$data"].cur_ZYX_angles = self.cur_ZYX_angles()
-                    self.vue["$data"].cur_position = self.cur_position()
+                    getattr(self.vue,"$data").cur_ZYX_angles = self.cur_ZYX_angles()
+                    getattr(self.vue,"$data").cur_position = self.cur_position()
                 except:
                     traceback.print_exc()
 
@@ -694,7 +696,7 @@ class PyriJogPanel(PyriWebUIBrowserPanelBase):
                 traceback.print_exc()
             
 
-            #self.vue["$forceUpdate"]()
+            #getattr(self.vue,"$forceUpdate")()
             await RRN.AsyncSleep(0.1,None)
 
 
@@ -728,7 +730,7 @@ async def add_jog_panel(panel_type: str, core: PyriWebUIBrowser, parent_element:
 
     jog_panel_obj = PyriJogPanel(core.device_manager,core)
 
-    jog_panel = js.Vue.new(js.python_to_js({
+    jog_panel = js.Vue.new(to_js2({
         "el": "#jog_panel_component",
         "data":
         {
