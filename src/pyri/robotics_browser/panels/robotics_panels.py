@@ -1,14 +1,26 @@
-from typing import List, Dict, Callable, Any
-from pyri.webui_browser.plugins.panel import PyriWebUIBrowserPanelInfo, PyriWebUIBrowserPanelPluginFactory, PyriWebUIBrowserPanelBase
+from typing import List, Dict, Callable, Any, Tuple
+from pyri.webui_browser.plugins.panel import PyriWebUIBrowserPanelInfo, PyriWebUIBrowserPanelPluginFactory
 from pyri.webui_browser import PyriWebUIBrowser
-from .jog_panel import add_jog_panel
+from pyri.webui_browser.golden_layout import PyriGoldenLayoutPanelConfig
 
 _panel_infos = {
     "jog": PyriWebUIBrowserPanelInfo(
         title="Jogging",
-        panel_type="jog",
-        priority=3000
-    ),
+        description = "Robot jogging panel",
+        panel_type = "jog",
+        panel_category = "robotics",
+        component_type="pyri-robotics-jog",
+        priority=10000
+    )
+}
+
+_panel_default_configs = {
+    "jog": PyriGoldenLayoutPanelConfig(
+        component_type=_panel_infos["jog"].component_type,
+        panel_id = "jog",
+        panel_title = "Jogging",
+        closeable= False
+    )
 }
 
 class PyriRoboticsPanelsWebUIBrowserPanelPluginFactory(PyriWebUIBrowserPanelPluginFactory):
@@ -21,10 +33,13 @@ class PyriRoboticsPanelsWebUIBrowserPanelPluginFactory(PyriWebUIBrowserPanelPlug
     def get_panels_infos(self) -> Dict[str,PyriWebUIBrowserPanelInfo]:
         return _panel_infos
 
-    async def add_panel(self, panel_type: str, core: PyriWebUIBrowser, parent_element: Any) -> PyriWebUIBrowserPanelBase:
-        if panel_type == "jog":
-            return await add_jog_panel(panel_type, core, parent_element)
-        assert False, f"Unknown panel_type \"{panel_type}\" specified"
+    def get_default_panels(self, layout_config: str = "default") -> List[Tuple[PyriWebUIBrowserPanelInfo, "PyriGoldenLayoutPanelConfig"]]:
+        if layout_config.lower() == "default":
+            return [
+                (_panel_infos["jog"], _panel_default_configs["jog"])
+            ]
+        else:
+            return []
 
 def get_webui_browser_panel_factory():
     return PyriRoboticsPanelsWebUIBrowserPanelPluginFactory()
