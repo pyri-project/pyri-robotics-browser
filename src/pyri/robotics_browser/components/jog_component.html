@@ -27,8 +27,8 @@
             <b-row class="no-gutters">
               <b-col>Min (deg)</b-col><b-col></b-col><b-col>Current (deg)</b-col><b-col></b-col><b-col>Max (deg)</b-col><b-col>Standby (deg)</b-col>
               <div class="w-100"></div>
-              <template v-for="(j, index) in joint_state" :key="j.joint_number">
-                <b-col>{{ j.lower }}</b-col>
+              <template v-for="(j, index) in joint_state">
+                <b-col :key="j.joint_number">{{ j.lower }}</b-col>
                 <b-col><b-button @mousedown="jog_decrement_mousedown(index)">J{{ index+1 }}-</b-button></b-col>
                 <b-col><span :id="'joint_pos_' + index"></span></b-col>
                 <b-col><b-button @mousedown="jog_increment_mousedown(index)">J{{ index+1 }}+</b-button></b-col>
@@ -46,11 +46,11 @@
         <b-row class="no-gutters">
             <b-col>Min<br>(deg)</b-col><b-col>Current<br>(deg)</b-col><b-col>Max<br>(deg)</b-col><b-col>Standby Input<br>(deg)</b-col>
             <div class="w-100"></div>
-            <template v-for="(j, index) in joint_state" :key="j.joint_number">
-              <b-col>{{ j.lower }}</b-col>              
+            <template v-for="(j, index) in joint_state">
+              <b-col :key="j.joint_number">{{ j.lower }}</b-col>              
               <b-col><span :id="'standby_joint_pos_' + index"></span></b-col>              
               <b-col>{{ j.upper }}</b-col>
-              <b-col><input type="text" :id="'standby_j' + index + '_angle_in'" :placeholder="j.current" value="0" type="number"></b-col>
+              <b-col><input type="text" :id="'standby_j' + index + '_angle_in'" :placeholder="j.current" value="0"></b-col>
               <div class="w-100"></div>
             </template>
           </b-row>
@@ -100,7 +100,7 @@
                 <tr> <td align="left"> ZYX Angles (deg):  </td> </tr>
                 <tr> <td> {{ cur_ZYX_angles }} </td></tr>
                 <tr> <td align="left"> Position (m): </td> </tr>
-                <tr> <td> {{ cur_position }} </div>  </td></tr>    
+                <tr> <td> {{ cur_position }} </td></tr>    
             </table>
             </td>
         </tr>  

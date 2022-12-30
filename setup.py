@@ -12,6 +12,7 @@ setup(
     include_package_data=True,
     package_data = {
         'pyri.robotics_browser.panels': ['*.html'],
+        'pyri.robotics_browser.components': ['*.html']
         #'pyri.robotics_browser.dialogs': ['*.html']
     },
     zip_safe=False,
@@ -21,6 +22,7 @@ setup(
     ],
     entry_points = {
         'pyri.plugins.webui_browser_panel': ['pyri-robotics-browser=pyri.robotics_browser.panels.robotics_panels:get_webui_browser_panel_factory'],
+        'pyri.plugins.webui_browser_component': ['pyri-robotics-browser=pyri.robotics_browser.components.robotics_components:get_webui_browser_component_factory'],
         #'pyri.plugins.webui_browser_variable_dialog': ['pyri-robotics-browser=pyri.robotics_browser.dialogs.robotics_variable_dialogs:get_webui_browser_variable_dialog_factory']
     }
 )
