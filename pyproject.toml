@@ -1,0 +1,39 @@
+[project]
+
+name = "pyri-robotics-browser"
+version = "0.2.0"
+description = "PyRI Teach Pendant WebUI Browser Robotics"
+readme = "README.md"
+requires-python = ">=3.8"
+license = {file = "LICENSE.txt"}
+keywords = ["pyodide", "pyri-project", "pyri-webui", "pyri-webui-browser-package", "robotics"]
+authors = [
+    {name = "John Wason", email = "wason@wasontech.com"}
+]
+classifiers = [
+    "Programming Language :: Python :: 3",
+    "License :: OSI Approved :: Apache Software License",
+    "Topic :: Scientific/Engineering"
+]
+
+dependencies = [
+    'pyri-common',        
+    'importlib-resources',        
+]
+
+[project.urls]
+homepage="http://pyri.tech"
+repository="https://github.com/pyri-project/pyri-robotics-browser"
+
+[project.entry-points."pyri.plugins.webui_browser_panel"]
+pyri-robotics-browser   = "pyri.robotics_browser.panels.robotics_panels:get_webui_browser_panel_factory"
+
+[project.entry-points."pyri.plugins.webui_browser_component"]
+pyri-robotics-browser = "pyri.robotics_browser.components.robotics_components:get_webui_browser_component_factory"
+
+[build-system]
+build-backend = 'setuptools.build_meta'
+requires = [
+    'setuptools',
+    'toml',
+]
