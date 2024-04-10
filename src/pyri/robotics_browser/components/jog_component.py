@@ -7,6 +7,7 @@ from pyri.webui_browser import util
 from pyri.webui_browser.util import to_js2
 from pyri.webui_browser.pyri_vue import PyriVue, VueComponent, vue_register_component, vue_data, \
     vue_method, vue_prop, vue_computed, vue_watch
+import asyncio
 
 import numpy as np
 
@@ -239,7 +240,7 @@ class PyriJogComponent(PyriVue):
                 # await plugin_jogJointSpace.async_jog_joints2(q_i, sign, None)
                 speed_perc = float(self.selected_jog_speed)
                 await jog.async_jog_joints(q_i, sign, speed_perc, None)
-                await RRN.AsyncSleep(0.01,None)
+                await asyncio.sleep(0.01)
 
             #await plugin_jogJointSpace.async_stop_joints(None)
         except:
@@ -346,7 +347,7 @@ class PyriJogComponent(PyriVue):
                 vel = RRN.ArrayToNamedArray(np.concatenate((R_axis,P_axis)),spatial_velocity_dtype)
                 speed_perc = float(self.selected_jog_speed)
                 await jog.async_jog_cartesian(vel, speed_perc, "robot", None)
-                await RRN.AsyncSleep(0.01,None)
+                await asyncio.sleep(0.01)
 
             #await plugin_jogCartesianSpace.async_stop_joints(None)
         except:
@@ -564,7 +565,7 @@ class PyriJogComponent(PyriVue):
         return  await jog_service.async_get_tool(current_tool,None)        
 
     @vue_method
-    async def tool_open(self, evt):
+    async def tool_open(self, *args):
         try:
             
             tool = await self.get_tool()
@@ -573,7 +574,7 @@ class PyriJogComponent(PyriVue):
             traceback.print_exc()
 
     @vue_method
-    async def tool_close(self, evt):
+    async def tool_close(self, *args):
         try:            
             tool = await self.get_tool()
             await tool.async_close(None)            
@@ -606,7 +607,7 @@ class PyriJogComponent(PyriVue):
                     await jog.async_enable_jog_joints_joystick(group, speed_perc, None)
                 else:
                     await jog.async_enable_jog_cartesian_joystick(speed_perc, "robot", None)
-                await RRN.AsyncSleep(0.01,None)
+                await asyncio.sleep(0.01)
 
             #await plugin_jogJointSpace.async_stop_joints(None)
         except:
@@ -709,7 +710,7 @@ class PyriJogComponent(PyriVue):
             
 
             #getattr(self.vue,"$forceUpdate")()
-            await RRN.AsyncSleep(0.1,None)
+            await asyncio.sleep(0.1)
 
 
 def register_vue_components():
