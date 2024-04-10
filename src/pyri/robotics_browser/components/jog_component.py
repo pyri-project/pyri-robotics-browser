@@ -649,6 +649,14 @@ class PyriJogComponent(PyriVue):
                 if set(new_tools) != last_tools:
                     self.current_tool_options = to_js2(util.device_names_to_dropdown_options(new_tools))
                     last_tools = set(new_tools)
+
+                if self.current_robot is not None:
+                    if self.current_robot not in new_robots:
+                        self.current_robot = None
+
+                if self.current_tool is not None:
+                    if self.current_tool not in new_tools:
+                        self.current_tool = None
                 
                 try:
                     self.current_robot_status = util.device_status_name(devices_states,self.current_robot)
