@@ -1,7 +1,7 @@
 [project]
 
 name = "pyri-robotics-browser"
-version = "0.2.0"
+version = "0.3.0"
 description = "PyRI Teach Pendant WebUI Browser Robotics"
 readme = "README.md"
 requires-python = ">=3.8"
@@ -18,7 +18,7 @@ classifiers = [
 
 dependencies = [
     'pyri-common',        
-    'importlib-resources',        
+    'importlib-resources==5.13.0'
 ]
 
 [project.urls]
@@ -37,3 +37,7 @@ requires = [
     'setuptools',
     'toml',
 ]
+
+[tool.setuptools.package-data]
+'pyri.robotics_browser.panels' = ['*.html']
+'pyri.robotics_browser.components' = ['*.html']
